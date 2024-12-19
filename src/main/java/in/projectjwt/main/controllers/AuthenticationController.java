@@ -75,13 +75,13 @@ public class AuthenticationController {
 
     }
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> authenticate(@RequestBody LoginUserDto loginUserDto,HttpSession session) {
+    public ResponseEntity<Map<String, Object>> authenticate(@RequestBody LoginUserDto loginUserDto) {
         User authenticatedUser = authenticationService.authenticate(loginUserDto);
         
-     // Store user info in session
-        session.setAttribute("userId", authenticatedUser.getId());
-        session.setAttribute("email", authenticatedUser.getEmail());
-        session.setAttribute("fullName", authenticatedUser.getFullName());
+     // // Store user info in session
+     //    session.setAttribute("userId", authenticatedUser.getId());
+     //    session.setAttribute("email", authenticatedUser.getEmail());
+     //    session.setAttribute("fullName", authenticatedUser.getFullName());
         
         String jwtToken = jwtService.generateToken(authenticatedUser);
         Map<String, Object> response = new HashMap<>();
