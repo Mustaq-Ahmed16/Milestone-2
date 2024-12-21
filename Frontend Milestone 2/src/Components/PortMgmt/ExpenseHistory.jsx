@@ -2,7 +2,6 @@ import React from 'react';
 
 const ExpenseHistory = ({ expenses }) => (
   <div className="expense-history">
-    <h3>Expense History</h3>
     <table>
       <thead>
         <tr>
