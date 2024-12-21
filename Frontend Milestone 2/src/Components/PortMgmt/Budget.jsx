@@ -9,23 +9,24 @@ const Budget = () => {
   const [showExpenseDialog, setShowExpenseDialog] = useState(false);
   const [budgets, setBudgets] = useState([]);
   const [selectedBudgetId, setSelectedBudgetId] = useState(null);
-  const [showExpenseTable, setShowExpenseTable] = useState(false);
-  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);  // New state for delete confirmation
-  const [budgetToDelete, setBudgetToDelete] = useState(null);  // Store budget to delete
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [budgetToDelete, setBudgetToDelete] = useState(null);
+
+  const [showExpenseHistoryModal, setShowExpenseHistoryModal] = useState(false); // New state for the modal
+  const [selectedBudgetExpenses, setSelectedBudgetExpenses] = useState([]); // To store selected budget's expenses
 
   const [newBudget, setNewBudget] = useState({
     name: "",
     description: "",
-    budget: "",
-    expense: "",
+    amount: "",
+    expenses: "",
   });
 
   const [newExpense, setNewExpense] = useState({
-    description: "",
-    amount: "",
+    expenseDescription: "",
+    expenseAmount: "",
   });
 
-  // Fetch all budgets when the component mounts
   useEffect(() => {
     axios
       .get("http://localhost:8005/auth/budgets/get-all-budgets")
@@ -40,7 +41,7 @@ const Budget = () => {
   const openBudgetDialog = () => setShowBudgetDialog(true);
   const closeBudgetDialog = () => {
     setShowBudgetDialog(false);
-    setNewBudget({ name: "", description: "", budget: "", expense: "" });
+    setNewBudget({ name: "", description: "", amount: "", expenses: "" });
   };
 
   const openExpenseDialog = (id) => {
@@ -50,7 +51,7 @@ const Budget = () => {
 
   const closeExpenseDialog = () => {
     setShowExpenseDialog(false);
-    setNewExpense({ description: "", amount: "" });
+    setNewExpense({ expenseDescription: "", expenseAmount: "" });
   };
 
   const handleBudgetInputChange = (e) => {
@@ -76,9 +77,10 @@ const Budget = () => {
   };
 
   const saveExpense = () => {
+    
     const expenseData = {
-      description: newExpense.description,
-      amount: parseFloat(newExpense.amount),
+      description: newExpense.expenseDescription,
+      amount: parseFloat(newExpense.expenseAmount),
     };
 
     axios
@@ -94,11 +96,12 @@ const Budget = () => {
               (sum, exp) => sum + exp.amount,
               0
             );
+            const progress = (totalExpense / budget.amount) * 100;
             return {
               ...budget,
               expenses: updatedExpenses,
               expense: totalExpense,
-              progress: (totalExpense / budget.budget) * 100,
+              progress: progress,
             };
           }
           return budget;
@@ -129,36 +132,34 @@ const Budget = () => {
       });
   };
 
-  // Show delete confirmation dialog
   const handleDeleteClick = (id) => {
     setBudgetToDelete(id);
     setShowDeleteConfirmation(true);
   };
 
-  // Hide the delete confirmation dialog without deleting
   const cancelDelete = () => {
     setShowDeleteConfirmation(false);
     setBudgetToDelete(null);
   };
 
-  const toggleExpenseTable = (id) => {
+  // Toggle the modal for viewing expenses
+  const toggleExpenseHistoryModal = (id) => {
     setSelectedBudgetId(id);
 
-    // Fetch expenses for the selected budget
     fetch(`http://localhost:8005/auth/budgets/get-expense/${id}/expenses`)
       .then((response) => response.json())
       .then((data) => {
-        // Update the expenses for the selected budget
-        setBudgets((prevBudgets) =>
-          prevBudgets.map((budget) =>
-            budget.id === id ? { ...budget, expenses: data } : budget
-          )
-        );
-        setShowExpenseTable(true); // Show the expense table after fetching data
+        setSelectedBudgetExpenses(data); // Set the expenses of the selected budget
+        setShowExpenseHistoryModal(true); // Show the modal
       })
       .catch((error) => {
         console.error("Error fetching expenses:", error);
       });
+  };
+
+  const closeExpenseHistoryModal = () => {
+    setShowExpenseHistoryModal(false); // Close the modal
+    setSelectedBudgetExpenses([]); // Clear the selected budget's expenses
   };
 
   return (
@@ -173,12 +174,12 @@ const Budget = () => {
           </button>
         </div>
 
-        {/* Scrollable Budget Summary Section */}
         <div className="budget-summary-container">
           {budgets.map((budget) => (
             <div key={budget.id} className="budget-summary">
               <div className="budget-sum">
                 <h3>{budget.name}</h3>
+                <p>{budget.description}</p>
                 <div className="budget-amount">
                   ${budget.expenses} / ${budget.amount}
                 </div>
@@ -197,12 +198,11 @@ const Budget = () => {
                   </button>
                   <button
                     className="btn btn-secondary"
-                    onClick={() => toggleExpenseTable(budget.id)}
+                    onClick={() => toggleExpenseHistoryModal(budget.id)} // Open modal
                   >
                     View Expenses
                   </button>
 
-                  {/* Delete Icon */}
                   <button
                     className="btn btn-danger delete-btn"
                     onClick={() => handleDeleteClick(budget.id)}
@@ -211,10 +211,6 @@ const Budget = () => {
                   </button>
                 </div>
               </div>
-
-              {showExpenseTable && selectedBudgetId === budget.id && (
-                <ExpenseHistory key={budget.id} expenses={budget.expenses} />
-              )}
             </div>
           ))}
         </div>
@@ -234,6 +230,21 @@ const Budget = () => {
               </button>
               <button className="btn btn-secondary" onClick={cancelDelete}>
                 No
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Expense History Modal */}
+      {showExpenseHistoryModal && (
+        <div className="dialog-overlay">
+          <div className="dialog-box">
+            <h3>Expense History</h3>
+            <ExpenseHistory expenses={selectedBudgetExpenses} />
+            <div className="dialog-actions">
+              <button className="btn btn-secondary" onClick={closeExpenseHistoryModal}>
+                Close
               </button>
             </div>
           </div>
@@ -262,14 +273,14 @@ const Budget = () => {
               <label>Budget:</label>
               <input
                 type="number"
-                name="budget"
+                name="amount"
                 value={newBudget.amount}
                 onChange={handleBudgetInputChange}
               />
               <label>Expense:</label>
               <input
                 type="number"
-                name="expense"
+                name="expenses"
                 value={newBudget.expenses}
                 onChange={handleBudgetInputChange}
               />
@@ -294,15 +305,15 @@ const Budget = () => {
               <label>Description:</label>
               <input
                 type="text"
-                name="description"
-                value={newExpense.description}
+                name="expenseDescription"
+                value={newExpense.expenseDescription}
                 onChange={handleExpenseInputChange}
               />
               <label>Amount:</label>
               <input
                 type="number"
-                name="amount"
-                value={newExpense.amount}
+                name="expenseAmount"
+                value={newExpense.expenseAmount}
                 onChange={handleExpenseInputChange}
               />
             </div>
