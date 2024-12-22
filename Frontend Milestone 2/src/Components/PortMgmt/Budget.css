@@ -108,18 +108,38 @@ body {
   margin: 10px 0;
 }
 
+/* Container for the progress bar */
 .progress-bar {
   width: 100%;
-  height: 8px;
-  background-color: #f0f0f0;
-  border-radius: 4px;
-  margin: 10px 0;
+  /* Make the progress bar span the full width of its container */
+  background-color: #e0e0e0;
+  /* Light gray background for the progress bar */
+  border-radius: 10px;
+  /* Rounded corners for the container */
+  overflow: hidden;
+  /* Ensure the fill doesn't overflow the container */
+  height: 20px;
+  /* Height of the progress bar */
+  margin-top: 5px;
+  /* Add some space between the progress bar and other elements */
 }
 
+/* Fill inside the progress bar that represents progress */
 .progress-fill {
   height: 100%;
-  background-color: #28a745;
-  border-radius: 4px;
+  /* Fill should match the container's height */
+  background-color: #4caf50;
+  /* Green color for progress */
+  width: 0;
+  /* Default width of the fill (will be dynamically set via JavaScript) */
+  transition: width 0.5s ease-in-out;
+  /* Smooth transition when progress changes */
+}
+
+/* Optional: If you want to show a red color when progress exceeds the budget limit */
+.progress-fill.over-budget {
+  background-color: #f44336;
+  /* Red color indicating over budget */
 }
 
 .summary-actions {
