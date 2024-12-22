@@ -77,7 +77,7 @@ const Budget = () => {
   };
 
   const saveExpense = () => {
-    
+
     const expenseData = {
       description: newExpense.expenseDescription,
       amount: parseFloat(newExpense.expenseAmount),
