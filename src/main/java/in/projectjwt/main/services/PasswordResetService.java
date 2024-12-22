@@ -20,27 +20,51 @@ public class PasswordResetService {
     @Autowired
     private EmailService emailService; // Implement email sending logic
 
-
     public String sendResetLink(String email) {
-    	System.out.println("Received email: " + email);
-    	// Check if the user is found
-    	Optional<User> userOpt = userRepository.findByEmail(email);
+        System.out.println("Received email: " + email);
+        Optional<User> userOpt = userRepository.findByEmail(email);
         User user = userOpt.orElseThrow(() -> new InvalidOTPException("User with email " + email + " not found"));
 
         // Generate OTP
         String otp = generateOTP();
 
-        // Set the OTP on the user
+        // Set the OTP and timestamp on the user
         user.setOtp(otp);
-        
-        // Save the user with the OTP set
+        user.setOtpTimestamp(new Date());
+
+        // Save the user with the OTP and timestamp
         userRepository.save(user);
 
         // Send OTP email
         emailService.sendOtpEmail(user.getEmail(), otp);
 
-        // Optionally return some confirmation or message if required
         return "Password reset link sent to " + email;
+    }
+
+
+//    public String sendResetLink(String email) {
+//    	System.out.println("Received email: " + email);
+//    	// Check if the user is found
+//    	Optional<User> userOpt = userRepository.findByEmail(email);
+//        User user = userOpt.orElseThrow(() -> new InvalidOTPException("User with email " + email + " not found"));
+//
+//        // Generate OTP
+//        String otp = generateOTP();
+//
+//        // Set the OTP on the user
+//        user.setOtp(otp);
+//        
+//        // Save the user with the OTP set
+//        userRepository.save(user);
+//
+//        // Send OTP email
+//        emailService.sendOtpEmail(user.getEmail(), otp);
+//
+//        // Optionally return some confirmation or message if required
+//        return "Password reset link sent to " + email;
+//}
+    	
+
     	
 //        if (user.isEmpty()) {
 //            throw new OTPExpiredException("User with email " + email + " not found");
@@ -63,7 +87,7 @@ public class PasswordResetService {
 //        emailService.sendEmail(email, "Password Reset Request", "Click the link to reset: " + resetLink);
 //
 //        return "Password reset link sent to your email.";
-    }
+  
     private String generateOTP() {
         // Generate a random 6-digit OTP
         Random random = new Random();
@@ -88,17 +112,42 @@ public class PasswordResetService {
 //        resetTokens.remove(token); // Invalidate token
 //        return "Password updated successfully.";
 //    }
-
+//
+//	public void verifyOTP(String email, String otp) {
+//		// TODO Auto-generated method stub
+//		Optional<User> userOpt = userRepository.findByEmail(email);
+//		// Check if user is present
+//	    User user = userOpt.orElseThrow(() -> new InvalidOTPException("User with email " + email + " not found"));
+//
+//	    // Validate OTP
+//	    if (!user.getOtp().equals(otp)) {
+//	        throw new InvalidOTPException("Invalid OTP");
+//	    }
+//	}
 	public void verifyOTP(String email, String otp) {
-		// TODO Auto-generated method stub
-		Optional<User> userOpt = userRepository.findByEmail(email);
-		// Check if user is present
+	    Optional<User> userOpt = userRepository.findByEmail(email);
 	    User user = userOpt.orElseThrow(() -> new InvalidOTPException("User with email " + email + " not found"));
 
-	    // Validate OTP
-	    if (!user.getOtp().equals(otp)) {
+	    // Check if OTP is expired
+	    long otpExpiryTime = 15 * 60 * 1000; // e.g., 15 minutes
+	    long otpTimestamp = user.getOtpTimestamp().getTime();
+	    long currentTime = System.currentTimeMillis();
+
+	    if (currentTime - otpTimestamp > otpExpiryTime) {
+	        throw new InvalidOTPException("OTP has expired");
+	    }
+
+	    // Validate OTP format and value
+	    if (!user.getOtp().equals(otp.trim())) {
 	        throw new InvalidOTPException("Invalid OTP");
 	    }
+
+	    // Optionally clear the OTP after successful verification (to prevent reuse)
+	    user.setOtp(null);
+	    user.setOtpTimestamp(null);
+	    userRepository.save(user);
+	}
+
 //        if (userOpt.isEmpty()) {
 //            throw new OTPExpiredException("User with email " + email + " not found");
 //        }
@@ -108,7 +157,7 @@ public class PasswordResetService {
 //        }
 
 		
-	}
+	
 
 	public void resetPassword(ResetPasswordRequestdto request) {
 		// TODO Auto-generated method stub
