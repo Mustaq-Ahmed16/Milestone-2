@@ -7,6 +7,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 //import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -36,13 +37,15 @@ public class User implements UserDetails{
 
 	@Column(unique = true, length = 10, nullable = false)
     private String phone;
-    @Column
+	
+//	private String photoUrl;  // Store the URL of the profile photo
     private String otp;
 
-    @Column
-    private LocalDateTime otpExpiry;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date otpTimestamp;
     
-    @CreationTimestamp
+   
+	@CreationTimestamp
     @Column(updatable = false, name = "created_at")
     private Date createdAt;
 
@@ -62,15 +65,6 @@ public class User implements UserDetails{
 	public void setOtp(String otp) {
 		this.otp = otp;
 	}
-
-	public LocalDateTime getOtpExpiry() {
-		return otpExpiry;
-	}
-
-	public void setOtpExpiry(LocalDateTime otpExpiry) {
-		this.otpExpiry = otpExpiry;
-	}
-
 	
 
 	public Integer getId() {
@@ -156,5 +150,12 @@ public class User implements UserDetails{
 	public void setPortfolios(Set<Portfolio> portfolios) {
 		this.portfolios = portfolios;
 	}
-    
+
+	public Date getOtpTimestamp() {
+		return otpTimestamp;
+	}
+
+	public void setOtpTimestamp(Date otpTimestamp) {
+		this.otpTimestamp = otpTimestamp;
+	}
 }
