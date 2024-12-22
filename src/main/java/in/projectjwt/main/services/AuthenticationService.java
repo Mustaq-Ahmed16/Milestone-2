@@ -1,6 +1,7 @@
 package in.projectjwt.main.services;
 
 import in.projectjwt.main.dtos.LoginUserDto;
+import in.projectjwt.main.dtos.ProfileUpdateDto;
 import in.projectjwt.main.dtos.RegisterUserDto;
 import in.projectjwt.main.entities.User;
 import in.projectjwt.main.exceptions.InvalidCredentialsException;
@@ -19,6 +20,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class AuthenticationService {
@@ -76,20 +78,29 @@ public class AuthenticationService {
 		// TODO Auto-generated method stub
 		return userRepository.findById(userId).orElse(null);
 	}
+    public User updateUserProfile(Integer userId, String fullName, String address, String phoneNumber) {
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID cannot be null at service");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+
+        // Update fields if they are not null or empty
+        if (fullName != null && !fullName.isEmpty()) {
+            user.setFullName(fullName);
+        }
+        if (address != null && !address.isEmpty()) {
+            user.setAddress(address);
+        }
+        if (phoneNumber != null && !phoneNumber.isEmpty()) {
+            user.setPhone(phoneNumber);
+        }
+//        if (photoUrl != null && !photoUrl.isEmpty()) {
+//            user.setPhotoUrl(photoUrl);
+//        }
+
+        // Save updated user
+        return userRepository.save(user);
+    }
 }
-        
-        
-        
-//        authenticationManager.authenticate(
-//                new UsernamePasswordAuthenticationToken(
-//                        input.getEmail(),
-//                        input.getPassword()
-//                )
-//        );
-//
-//        return userRepository.findByEmail(input.getEmail())
-//                .orElseThrow();
-//    }
-    
-
-
