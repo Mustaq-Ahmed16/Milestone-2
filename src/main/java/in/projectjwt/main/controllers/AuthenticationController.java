@@ -8,18 +8,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-
-
+import org.springframework.web.multipart.MultipartFile;
 
 import in.projectjwt.main.dtos.LoginUserDto;
 import in.projectjwt.main.dtos.ResetPasswordRequestdto;
 import in.projectjwt.main.dtos.OtpVerificationRequestdto;
+import in.projectjwt.main.dtos.ProfileUpdateDto;
 import in.projectjwt.main.entities.User;
 import in.projectjwt.main.exceptions.InvalidOTPException;
 
@@ -28,6 +28,12 @@ import in.projectjwt.main.services.AuthenticationService;
 import in.projectjwt.main.services.JwtService;
 import in.projectjwt.main.services.PasswordResetService;
 import jakarta.servlet.http.HttpSession;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import org.springframework.beans.factory.annotation.Value;
 
 @RequestMapping("/auth")
 @RestController
@@ -41,6 +47,9 @@ public class AuthenticationController {
     
     @Autowired
     private UserRepository userRepo;
+    
+    @Value("${file.upload-dir}")
+    private String uploadDir;
   
 
     public AuthenticationController(JwtService jwtService, AuthenticationService authenticationService) {
@@ -78,10 +87,10 @@ public class AuthenticationController {
     public ResponseEntity<Map<String, Object>> authenticate(@RequestBody LoginUserDto loginUserDto) {
         User authenticatedUser = authenticationService.authenticate(loginUserDto);
         
-     // // Store user info in session
-     //    session.setAttribute("userId", authenticatedUser.getId());
-     //    session.setAttribute("email", authenticatedUser.getEmail());
-     //    session.setAttribute("fullName", authenticatedUser.getFullName());
+//     // Store user info in session
+//        session.setAttribute("userId", authenticatedUser.getId());
+//        session.setAttribute("email", authenticatedUser.getEmail());
+//        session.setAttribute("fullName", authenticatedUser.getFullName());
         
         String jwtToken = jwtService.generateToken(authenticatedUser);
         Map<String, Object> response = new HashMap<>();
@@ -143,6 +152,31 @@ public class AuthenticationController {
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
         }
+    }
+    @PutMapping("/update-profile")
+    public ResponseEntity<Map<String, Object>> updateUserProfile(@RequestBody ProfileUpdateDto request) {
+        if (request.getId() == null) {
+            throw new IllegalArgumentException("User ID cannot be null at controller");
+        }
+
+        // Call service method to update user profile
+        User updatedUser = authenticationService.updateUserProfile(request.getId(), request.getFullName(), request.getAddress(), request.getPhone());
+
+        // Prepare response
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "User profile updated successfully");
+
+        // Add updated user details to response
+        Map<String, String> userDetails = new HashMap<>();
+        userDetails.put("fullName", updatedUser.getFullName());
+        userDetails.put("email", updatedUser.getEmail());
+        userDetails.put("address", updatedUser.getAddress());
+        userDetails.put("phoneNumber", updatedUser.getPhone());
+//        userDetails.put("photoUrl", updatedUser.getPhotoUrl());
+        response.put("user", userDetails);
+
+        return ResponseEntity.ok(response);
     }
 
 }
