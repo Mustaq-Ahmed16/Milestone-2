@@ -1,5 +1,10 @@
 package in.projectjwt.main.entities;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -15,28 +20,41 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+
 @Table(name = "users")
 @Entity
 public class User implements UserDetails{
+	
+	private PasswordResetState resetState;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
     private Integer id;
 
-    @Column(nullable = false)
-    private String fullName;
-
-    @Column(unique = true, length = 100, nullable = false)
+    @NotBlank(message = "Email is required!!")
+    @Pattern(
+    	    regexp = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.com$",
+    	    message = "Email must contain @ and domain name..."
+    	)
+    @Column(unique = true, nullable = false)
     private String email;
-
-    @Column(nullable = false)
+    
+    @NotEmpty(message = "Password is required")
+    @Size(min = 8, message = "Password must be at least 8 characters long")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*(),.?\":{}|<>]).+$", message = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character")
     private String password;
-    @Column(nullable = false)
-    private String address;
     
 
-	@Column(unique = true, length = 10, nullable = false)
+    @NotEmpty(message = "Full Name is required")
+    private String fullName;
+
+    @NotEmpty(message = "Address is required")
+    private String address;
+
+    @NotEmpty(message = "Phone number is required")
+    @Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be exactly 10 digits")
     private String phone;
+
 	
 //	private String photoUrl;  // Store the URL of the profile photo
     private String otp;
@@ -158,4 +176,24 @@ public class User implements UserDetails{
 	public void setOtpTimestamp(Date otpTimestamp) {
 		this.otpTimestamp = otpTimestamp;
 	}
+
+	public PasswordResetState getResetState() {
+		return resetState;
+	}
+
+	public void setResetState(PasswordResetState resetState) {
+		this.resetState = resetState;
+	}
+	
+	
+	
+//	 public String getPhotoUrl() {
+//		return photoUrl;
+//	}
+//
+//	public void setPhotoUrl(String photoUrl) {
+//		this.photoUrl = photoUrl;
+//	}
+
+    
 }

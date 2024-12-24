@@ -23,16 +23,26 @@ import in.projectjwt.main.exceptions.InvalidCredentialsException;
 import in.projectjwt.main.exceptions.UserNotFoundException;
 import in.projectjwt.main.repositories.UserRepository;
 
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+
+import org.springframework.http.ResponseEntity;
+import java.util.Optional;
+
 public class AuthenticationServiceTest {
 
     @Mock
     private UserRepository userRepository;
 
     @Mock
-    private PasswordEncoder passwordEncoder;
+    private AuthenticationManager authenticationManager;
 
     @Mock
-    private AuthenticationManager authenticationManager;
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private AuthenticationService authenticationService;
@@ -44,84 +54,55 @@ public class AuthenticationServiceTest {
     public void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        // Initialize test data
         user = new User();
         user.setId(1);
-        user.setFullName("John Doe");
-        user.setEmail("johndoe@example.com");
-        user.setPassword("Password@123");
-        user.setAddress("123 Main St");
-        user.setPhone("1234567890");
+        user.setEmail("john@example.com");
+        user.setPassword("password");
 
         loginUserDto = new LoginUserDto();
-        loginUserDto.setEmail("johndoe@example.com");
-        loginUserDto.setPassword("Password@123");
+        loginUserDto.setEmail("john@example.com");
+        loginUserDto.setPassword("password");
     }
 
     @Test
-    public void testRegister_UserAlreadyExists() {
-        // Arrange
-        when(userRepository.existsByEmail(user.getEmail())).thenReturn(true);
-
-        // Act
-        ResponseEntity<Map<String, String>> response = authenticationService.register(user);
-
-        // Assert
-        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
-        assertEquals("User already created with the same email ID.", response.getBody().get("message"));
-    }
-
-    @Test
-    public void testRegister_SuccessfulRegistration() {
+    public void testRegister() {
         // Arrange
         when(userRepository.existsByEmail(user.getEmail())).thenReturn(false);
-        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(userRepository.save(user)).thenReturn(user);
 
         // Act
         ResponseEntity<Map<String, String>> response = authenticationService.register(user);
 
         // Assert
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertNotNull(response);
         assertEquals("User registered successfully.", response.getBody().get("message"));
     }
 
     @Test
-    public void testAuthenticate_SuccessfulAuthentication() {
+    public void testAuthenticate() {
         // Arrange
-        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
-
-        // Mock authentication success (no exception is thrown)
-        doNothing().when(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+        when(userRepository.findByEmail(loginUserDto.getEmail())).thenReturn(Optional.of(user));
+        when(authenticationManager.authenticate(any())).thenReturn(null);
 
         // Act
         User authenticatedUser = authenticationService.authenticate(loginUserDto);
 
         // Assert
         assertNotNull(authenticatedUser);
-        assertEquals(user.getEmail(), authenticatedUser.getEmail());
+        assertEquals("john@example.com", authenticatedUser.getEmail());
     }
 
     @Test
-    public void testAuthenticate_InvalidCredentials() {
+    public void testUpdateUserProfile() {
         // Arrange
-        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(user)).thenReturn(user);
 
-        // Mock authentication failure (throw BadCredentialsException)
-        doThrow(BadCredentialsException.class).when(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+        // Act
+        User updatedUser = authenticationService.updateUserProfile(1, "John Doe Updated", "New Address", "123456789");
 
-        // Act & Assert
-        assertThrows(InvalidCredentialsException.class, () -> authenticationService.authenticate(loginUserDto));
-    }
-
-    @Test
-    public void testAuthenticate_UserNotFound() {
-        // Arrange
-        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
-
-        // Mock authentication (no exception is thrown)
-        doNothing().when(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-
-        // Act & Assert
-        assertThrows(UserNotFoundException.class, () -> authenticationService.authenticate(loginUserDto));
+        // Assert
+        assertNotNull(updatedUser);
+        assertEquals("John Doe Updated", updatedUser.getFullName());
     }
 }

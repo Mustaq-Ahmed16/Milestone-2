@@ -103,4 +103,50 @@ public class AuthenticationService {
         // Save updated user
         return userRepository.save(user);
     }
+
+    
+//    public User updateUserProfile(Integer userId, String fullName, String address, String phoneNumber, String photoUrl) {
+//    	if (userId == null) {
+//            throw new IllegalArgumentException("User ID cannot be null at service");
+//        }
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+//
+//        // Update fields if they are not null or empty
+//        if (fullName != null && !fullName.isEmpty()) {
+//            user.setFullName(fullName);
+//        }
+//        if (address != null && !address.isEmpty()) {
+//            user.setAddress(address);
+//        }
+//        if (phoneNumber != null && !phoneNumber.isEmpty()) {
+//            user.setPhone(phoneNumber);
+//        }
+//        if (photoUrl != null && !photoUrl.isEmpty()) {
+//            user.setPhotoUrl(photoUrl);
+//        }
+//
+//        // Save updated user
+//        return userRepository.save(user);
+//    }
+
+
+
+    
 }
+        
+        
+        
+//        authenticationManager.authenticate(
+//                new UsernamePasswordAuthenticationToken(
+//                        input.getEmail(),
+//                        input.getPassword()
+//                )
+//        );
+//
+//        return userRepository.findByEmail(input.getEmail())
+//                .orElseThrow();
+//    }
+    
+
+

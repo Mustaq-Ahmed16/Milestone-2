@@ -5,6 +5,8 @@ import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,6 +30,8 @@ import in.projectjwt.main.services.AuthenticationService;
 import in.projectjwt.main.services.JwtService;
 import in.projectjwt.main.services.PasswordResetService;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -58,50 +62,64 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Map<String, Object>> register(@RequestBody User user) {
-    	Map<String, Object> response = new HashMap<>();
+    public ResponseEntity<Map<String, Object>> register(@Valid @RequestBody User user, BindingResult bindingResult) {
+        Map<String, Object> response = new HashMap<>();
 
-        // Call the service to handle the user signup
+        // Check for validation errors
+        if (bindingResult.hasErrors()) {
+            Map<String, String> validationErrors = new HashMap<>();
+            for (FieldError error : bindingResult.getFieldErrors()) {
+                validationErrors.put(error.getField(), error.getDefaultMessage());
+            }
+            response.put("success", false);
+            response.put("errors", validationErrors);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response); // HTTP 400 Bad Request
+        }
+
+        // Proceed with registration logic
         ResponseEntity<Map<String, String>> signupResponse = authenticationService.register(user);
 
-        // If signup response contains a message about the user already existing
+        // If user already exists, return conflict response
         if (signupResponse.getStatusCode() == HttpStatus.CONFLICT) {
-        	response.put("success", "false");
+            response.put("success", "false");
             response.put("message", signupResponse.getBody().get("message"));
             return ResponseEntity.status(HttpStatus.CONFLICT).body(response); // HTTP 409 Conflict
         }
-     // If user is successfully registered
+
+        // Successful registration
         response.put("success", "true");
         response.put("message", signupResponse.getBody().get("message"));
-        
-        // Add the user details
+
+        // Add user details
         Map<String, String> userDetails = new HashMap<>();
         userDetails.put("fullName", user.getFullName());
         userDetails.put("email", user.getEmail());
         response.put("user", userDetails);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-
+        return ResponseEntity.status(HttpStatus.CREATED).body(response); // HTTP 201 Created
     }
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> authenticate(@RequestBody LoginUserDto loginUserDto) {
+    public ResponseEntity<Map<String, Object>> authenticate(
+            @Valid @RequestBody LoginUserDto loginUserDto, BindingResult bindingResult) {
+
+        // Handle validation errors
+        if (bindingResult.hasErrors()) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            for (FieldError error : bindingResult.getFieldErrors()) {
+                errorResponse.put(error.getField(), error.getDefaultMessage());
+            }
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+
+        // Proceed with authentication
         User authenticatedUser = authenticationService.authenticate(loginUserDto);
-        
-//     // Store user info in session
-//        session.setAttribute("userId", authenticatedUser.getId());
-//        session.setAttribute("email", authenticatedUser.getEmail());
-//        session.setAttribute("fullName", authenticatedUser.getFullName());
-        
+
         String jwtToken = jwtService.generateToken(authenticatedUser);
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("message", "Login successful");
         response.put("token", jwtToken);  // Provide token for further use
         response.put("user", authenticatedUser);  // Include user details if needed
-
-
-       // LoginResponse loginResponse = new LoginResponse().setToken(jwtToken).setExpiresIn(jwtService.getExpirationTime()).setFullname(authenticatedUser.getFullName()).setEmail(authenticatedUser.getEmail());
-        
 
         return ResponseEntity.ok(response);
     }

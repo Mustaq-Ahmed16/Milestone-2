@@ -1,12 +1,15 @@
 package in.projectjwt.main.services;
 
 import org.springframework.stereotype.Service;
+
+import in.projectjwt.main.entities.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -87,5 +90,38 @@ public class JwtService {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
+   
+ // New Method: Generate token for Password Reset Flow
+    public String generateResetPasswordToken(String email) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("reset_password_started", true);  // Custom claim for reset password start
+        return buildToken(claims, new User(), jwtExpiration); // Generate token with custom claim
+    }
+
+    // New Method: Generate token for OTP Verification
+    public String generateOtpVerifiedToken(String email) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("reset_password_started", true);  // Ensure reset process started
+        claims.put("otp_verified", true);            // Custom claim for OTP verification
+        return buildToken(claims, new User(), jwtExpiration);
+    }
+
+    // New Method: Generate token for Password Change
+    public String generatePasswordChangeToken(String email) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("reset_password_started", true);  // Ensure reset process started
+        claims.put("otp_verified", true);            // Ensure OTP is verified
+        return buildToken(claims, new User(), jwtExpiration);
+    }
+
+    // New Method: Validate the custom claims for password reset flow
+    public boolean isValidPasswordResetToken(String token, String email) {
+        final Claims claims = extractAllClaims(token);
+        return email.equals(claims.getSubject()) &&
+               claims.get("reset_password_started", Boolean.class) != null &&
+               claims.get("otp_verified", Boolean.class) != null;
+    }
+
+
 
 }

@@ -21,28 +21,7 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
-//    public void sendEmail(String email, String subject, String body) {
-//        SimpleMailMessage mailMessage = new SimpleMailMessage();
-//        try {
-//        	System.out.println(email);
-//        	System.out.println(subject);
-//        	System.out.println(body);
-//            mailMessage.setFrom(fromEmailId);
-//            mailMessage.setTo(email);
-//            mailMessage.setText(body);
-//            mailMessage.setSubject(subject);
-//            
-//
-//            // Sending the email
-//            mailSender.send(mailMessage);
-//            System.out.println("Email sent successfully to " + email);
-//            
-//        } catch (Exception e) {
-//            // Improved error handling
-//            System.out.println("Error in sending email: " + e.getMessage());
-//            e.printStackTrace();
-//        }
-//    }
+
 
 	public void sendOtpEmail(String toEmail, String otp) {
 		// TODO Auto-generated method stub
@@ -63,5 +42,46 @@ public class EmailService {
 		}
 		
 	}
+	
+	public void sendStockPurchaseEmail(String toEmail, String userName, String stockSymbol, int noOfShares, double purchasePrice) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("no-reply@SafeCryptoStocks.com");
+        message.setTo(toEmail);
+        message.setSubject("Stock Purchase Confirmation");
+
+        String text = String.format("Hello %s,\n\n" +
+                                    "Your stock purchase was successful!\n\n" +
+                                    "Stock: %s\n" +
+                                    "Number of Shares: %d\n" +
+                                    "Total Purchase Price: $%.2f\n\n" +
+                                    "Thank you for using our service.\n\n" +
+                                    "Best regards,\n" +
+                                    "SafeCryptoStocks", userName, stockSymbol, noOfShares, purchasePrice);
+        
+        message.setText(text);
+        
+        mailSender.send(message);
+    }
+	 // New method for sending stock sale email notification
+    public void sendStockSaleEmail(String toEmail, String userName, String stockSymbol, int quantitySell, double saleValue, double profitOrLoss) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("no-reply@SafeCryptoStocks.com");
+        message.setTo(toEmail);
+        message.setSubject("Stock Sale Confirmation");
+
+        String text = String.format("Hello %s,\n\n" +
+                                    "Your stock sale was successful!\n\n" +
+                                    "Stock: %s\n" +
+                                    "Number of Shares Sold: %d\n" +
+                                    "Total Sale Value: $%.2f\n" +
+                                    "Profit/Loss from Sale: $%.2f\n\n" +
+                                    "Thank you for using our service.\n\n" +
+                                    "Best regards,\n" +
+                                    "SafeCryptoStocks", userName, stockSymbol, quantitySell, saleValue, profitOrLoss);
+        
+        message.setText(text);
+        
+        mailSender.send(message);
+    }
 
 }

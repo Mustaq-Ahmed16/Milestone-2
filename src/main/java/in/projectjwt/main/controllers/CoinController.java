@@ -58,14 +58,7 @@ public class CoinController {
                                                    @RequestParam("days") int days) throws Exception {
         String coins = coinService.getMarketChart(coinId, days);
         JsonNode jsonNode = objectMapper.readTree(coins);
-        // HttpSession session = request.getSession(false);
-        // if (session == null) {
-        // 	return ResponseEntity.status(HttpStatus.UNAUTHORIZED) // HTTP 401 Unauthorized
-        //             .body(objectMapper.createObjectNode().put("error", "Please login session has expired."));
-        // }
-        // String userName = (String) session.getAttribute("userName");
-        // model.addAttribute("userName", userName);
-        // model.addAttribute("cryptoData", jsonNode); // Pass all relevant data
+
         return ResponseEntity.ok(jsonNode);
     }
     /**
@@ -76,14 +69,7 @@ public class CoinController {
     public ResponseEntity<JsonNode> getCoinDetails(@PathVariable String coinId) throws Exception {
         String coinDetails = coinService.getCoinDetails(coinId);
         JsonNode jsonNode = objectMapper.readTree(coinDetails);
-        // HttpSession session = request.getSession(false);
-        // if (session == null) {
-        // 	return ResponseEntity.status(HttpStatus.UNAUTHORIZED) // HTTP 401 Unauthorized
-        //             .body(objectMapper.createObjectNode().put("error", "Please login session has expired."));
-        // }
-        // String userName = (String) session.getAttribute("userName");
-        // model.addAttribute("userName", userName);
-        // model.addAttribute("cryptoData", jsonNode); // Pass all relevant data
+//
         return ResponseEntity.ok(jsonNode);
     }
 
@@ -101,14 +87,7 @@ public class CoinController {
         try {
         	String result = coinService.searchCoin(keyword);
             JsonNode jsonNode = objectMapper.readTree(result);
-         //    HttpSession session = request.getSession(false);
-	        // if (session == null) {
-	        // 	return ResponseEntity.status(HttpStatus.UNAUTHORIZED) // HTTP 401 Unauthorized
-	        //             .body(objectMapper.createObjectNode().put("error", "Please login session has expired."));
-	        // }
-	        // String userName = (String) session.getAttribute("userName");
-	        // model.addAttribute("userName", userName);
-	        // model.addAttribute("cryptoData", jsonNode); // Pass all relevant data
+
             return ResponseEntity.ok(jsonNode);
         	
         }
@@ -125,14 +104,7 @@ public class CoinController {
         try {
             String coins = coinService.getTop10CoinsByMarketCapRank();
             JsonNode jsonNode = objectMapper.readTree(coins);
-         //    HttpSession session = request.getSession(false);
-	        // if (session == null) {
-	        // 	return ResponseEntity.status(HttpStatus.UNAUTHORIZED) // HTTP 401 Unauthorized
-	        //             .body(objectMapper.createObjectNode().put("error", "Please login session has expired."));
-	        // }
-	        // String userName = (String) session.getAttribute("userName");
-	        // model.addAttribute("userName", userName);
-	        // model.addAttribute("cryptoData", jsonNode); // Pass all relevant data
+
             return ResponseEntity.ok(jsonNode);
         } catch (Exception e) {
             // Logging error
@@ -149,14 +121,7 @@ public class CoinController {
         try {
             String coins = coinService.getTop50CoinsByMarketCapRank();
             JsonNode jsonNode = objectMapper.readTree(coins);
-         //    HttpSession session = request.getSession(false);
-	        // if (session == null) {
-	        // 	return ResponseEntity.status(HttpStatus.UNAUTHORIZED) // HTTP 401 Unauthorized
-	        //             .body(objectMapper.createObjectNode().put("error", "Please login session has expired."));
-	        // }
-	        // String userName = (String) session.getAttribute("userName");
-	        // model.addAttribute("userName", userName);
-	        // model.addAttribute("cryptoData", jsonNode); // Pass all relevant data
+
             return ResponseEntity.ok(jsonNode);
         } catch (Exception e) {
             // Logging error
@@ -174,15 +139,7 @@ public class CoinController {
         try {
             String coins = coinService.getTrendingCoins();
             JsonNode jsonNode = objectMapper.readTree(coins);
-            
-	        // HttpSession session = request.getSession(false);
-	        // if (session == null) {
-	        // 	return ResponseEntity.status(HttpStatus.UNAUTHORIZED) // HTTP 401 Unauthorized
-	        //             .body(objectMapper.createObjectNode().put("error", "Please login session has expired."));
-	        // }
-	        // String userName = (String) session.getAttribute("userName");
-	        // model.addAttribute("userName", userName);
-	        // model.addAttribute("cryptoData", jsonNode); // Pass all relevant data
+
             return ResponseEntity.ok(jsonNode);
         } catch (Exception e) {
             // Logging error

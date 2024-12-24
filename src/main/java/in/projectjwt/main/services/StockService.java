@@ -33,6 +33,9 @@ public class StockService {
     
     @Autowired
     private StockApiService stockApiService; // Service to call CoinGecko API
+    
+    @Autowired
+    private EmailService emailService;
 
  // Method to buy stock
     public Stock buyStock(Long portfolioId, String stockSymbol, int noOfShares) {
@@ -69,6 +72,8 @@ public class StockService {
 
             // Save the updated stock
             stockRepository.save(existingStock);
+         // Send email notification
+            emailService.sendStockPurchaseEmail(portfolio.getUser().getEmail(), portfolio.getUser().getFullName(), stockSymbol, noOfShares, purchasePrice);
             return existingStock;
         } else {
             // Create a new stock entry if it doesn't exist in the portfolio
@@ -85,6 +90,9 @@ public class StockService {
             newStock.setPortfolio(portfolio);
 
             // Save the stock to the repository
+         // Send email notification
+            emailService.sendStockPurchaseEmail(portfolio.getUser().getEmail(), portfolio.getUser().getFullName(), stockSymbol, noOfShares, purchasePrice);
+            System.out.println("Email send to : "+portfolio.getUser().getEmail());
             return stockRepository.save(newStock);
         }
     }
@@ -149,10 +157,15 @@ public class StockService {
 
         // Save the updated stock to the repository
         stockRepository.save(stock);
+     // Send email notification for the stock sale
+        emailService.sendStockSaleEmail(portfolio.getUser().getEmail(), portfolio.getUser().getFullName(), 
+                                        stock.getStockSymbol(), quantitySell, saleValue, profitOrLoss);
+        System.out.println("Email send for Sold Confirmation to : "+ portfolio.getUser().getEmail());
 
         // Optionally update the portfolio balance
         portfolio.setBalance(portfolio.getBalance() + saleValue);
         portfolioRepository.save(portfolio);
+        
     }
 
 	 
